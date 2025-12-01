@@ -1,0 +1,36 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_SITE_URL": "@shuai-site-url",
+    "DATABASE_URL": "@shuai-database-url",
+    "REDIS_URL": "@shuai-redis-url",
+    "OPENAI_API_KEY": "@shuai-openai-key",
+    "GHL_API_KEY": "@shuai-ghl-key",
+    "GHL_ACCOUNT_ID": "@shuai-ghl-account",
+    "N8N_WEBHOOK_SECRET": "@shuai-n8n-secret",
+    "ADMIN_PASSWORD_HASH": "@shuai-admin-hash"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}

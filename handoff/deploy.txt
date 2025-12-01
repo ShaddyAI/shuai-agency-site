@@ -1,0 +1,135 @@
+ShuAI Agency Website - Deployment Information
+==============================================
+
+Repository: /home/user/shuai-agency-site
+Built: 2025-12-01
+Status: ✅ Ready for deployment
+
+VERCEL DEPLOYMENT
+-----------------
+To deploy to Vercel:
+
+1. Install Vercel CLI:
+   npm i -g vercel
+
+2. Login:
+   vercel login
+
+3. Deploy to staging:
+   vercel
+
+4. Deploy to production:
+   vercel --prod
+
+Preview URL (staging): 
+Will be generated after first deployment
+
+Production URL:
+https://yourdomain.com (after custom domain setup)
+
+ENVIRONMENT VARIABLES REQUIRED
+-------------------------------
+Set these in Vercel dashboard before deploying:
+
+✓ NEXT_PUBLIC_SITE_URL
+✓ DATABASE_URL
+✓ REDIS_URL  
+✓ OPENAI_API_KEY
+✓ ADMIN_PASSWORD_HASH
+✓ GHL_API_KEY (optional, will use mock if not set)
+✓ GHL_ACCOUNT_ID (optional)
+✓ N8N_WEBHOOK_SECRET (optional)
+
+See .env.example for full list
+
+DATABASE SETUP
+--------------
+1. Provision Postgres with pgvector support:
+   - Vercel Postgres (recommended)
+   - Supabase
+   - Neon
+   - Self-hosted with pgvector extension
+
+2. Run migrations:
+   npm run db:migrate
+
+3. Seed data:
+   npm run db:seed
+
+4. Index embeddings:
+   npm run index:embeddings
+
+REDIS SETUP
+-----------
+Provision Redis instance:
+- Upstash (recommended for Vercel)
+- Vercel KV
+- Self-hosted
+
+TEST DEPLOYMENT
+---------------
+After deploying to staging:
+
+1. Visit staging URL
+2. Test homepage loads
+3. Test chat widget appears
+4. Send test message to chat
+5. Test case study pages
+6. Test admin login at /admin
+7. Create test lead
+8. Verify GHL contact created (if configured)
+
+PRE-PRODUCTION CHECKLIST
+------------------------
+□ All environment variables set
+□ Database migrated and seeded
+□ Embeddings indexed
+□ GHL integration tested
+□ n8n workflows imported
+□ Admin password set
+□ Custom domain configured
+□ SSL certificate active
+□ Analytics tracking ID added
+□ Error monitoring (Sentry) configured
+
+SUPPORT & DOCUMENTATION
+------------------------
+Full docs in handoff/:
+- README.md - Main documentation
+- GHL-Setup.md - GoHighLevel integration
+- n8n-import.json - Workflow definitions
+- 30-day-launch-checklist.md - Launch plan
+- admin-credentials.txt - Admin access
+
+ROLLBACK PLAN
+-------------
+If issues occur after deployment:
+
+1. Revert to previous deployment in Vercel:
+   vercel rollback
+
+2. Or redeploy previous commit:
+   git revert HEAD
+   vercel --prod
+
+MONITORING
+----------
+After deployment, monitor:
+- Vercel logs (vercel logs)
+- Error tracking (Sentry)
+- Uptime (UptimeRobot)
+- Analytics (Google Analytics)
+- Database performance
+- API rate limits
+
+NEXT STEPS
+----------
+1. Deploy to Vercel staging
+2. Complete testing checklist
+3. Configure custom domain
+4. Import n8n workflows
+5. Setup GHL integration
+6. Deploy to production
+7. Follow 30-day launch checklist
+
+Built with ❤️ for ShuAI

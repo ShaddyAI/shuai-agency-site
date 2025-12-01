@@ -1,0 +1,247 @@
+{
+  "name": "ShuAI Integration Workflows",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "enrich",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-enrich",
+      "name": "Webhook - Lead Enrichment",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "lead-enrich"
+    },
+    {
+      "parameters": {
+        "url": "https://company.clearbit.com/v1/domains/find",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "domain",
+              "value": "={{$json[\"domain\"]}}"
+            }
+          ]
+        }
+      },
+      "id": "clearbit-lookup",
+      "name": "Clearbit Company Lookup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"leadId\": $node[\"Webhook - Lead Enrichment\"].json[\"leadId\"], \"companyInfo\": { \"domain\": $node[\"Webhook - Lead Enrichment\"].json[\"domain\"], \"name\": $json[\"name\"], \"industry\": $json[\"category\"][\"industry\"], \"size\": $json[\"metrics\"][\"employees\"], \"linkedinUrl\": $json[\"linkedin\"][\"handle\"], \"description\": $json[\"description\"] }, \"enriched\": true } }}"
+      },
+      "id": "respond-enrichment",
+      "name": "Respond with Enrichment",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "backup-sheets",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-backup",
+      "name": "Webhook - Backup to Sheets",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 500],
+      "webhookId": "backup-sheets"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "GOOGLE_SHEET_ID_HERE",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{$json[\"timestamp\"]}}",
+            "Lead ID": "={{$json[\"leadId\"]}}",
+            "Email": "={{$json[\"email\"]}}",
+            "Phone": "={{$json[\"phone\"]}}",
+            "First Name": "={{$json[\"firstName\"]}}",
+            "Last Name": "={{$json[\"lastName\"]}}",
+            "Company Size": "={{$json[\"companySize\"]}}",
+            "Primary Goal": "={{$json[\"primaryGoal\"]}}",
+            "Timeline": "={{$json[\"timeline\"]}}",
+            "UTM Source": "={{$json[\"utmSource\"]}}",
+            "UTM Medium": "={{$json[\"utmMedium\"]}}",
+            "UTM Campaign": "={{$json[\"utmCampaign\"]}}",
+            "Fingerprint": "={{$json[\"fingerprint\"]}}",
+            "Page": "={{$json[\"page\"]}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "google-sheets",
+      "name": "Google Sheets - Append Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [470, 500],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "GOOGLE_OAUTH_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "follow-up",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-followup",
+      "name": "Webhook - Follow-up Sequence",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 700],
+      "webhookId": "follow-up"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"sequenceType\"]}}",
+              "operation": "equals",
+              "value2": "no-booking-48h"
+            }
+          ]
+        }
+      },
+      "id": "check-sequence-type",
+      "name": "Check Sequence Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [470, 700]
+    },
+    {
+      "parameters": {
+        "url": "https://rest.gohighlevel.com/v1/contacts/{{$node[\"Webhook - Follow-up Sequence\"].json[\"leadId\"]}}/campaigns/EMAIL_CAMPAIGN_ID",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "firstName",
+              "value": "={{$node[\"Webhook - Follow-up Sequence\"].json[\"firstName\"]}}"
+            }
+          ]
+        }
+      },
+      "id": "ghl-email-48h",
+      "name": "GHL - Send 48h Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [690, 650]
+    },
+    {
+      "parameters": {
+        "url": "https://rest.gohighlevel.com/v1/contacts/{{$node[\"Webhook - Follow-up Sequence\"].json[\"leadId\"]}}/campaigns/SMS_CAMPAIGN_ID",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true
+      },
+      "id": "ghl-sms-7d",
+      "name": "GHL - Send 7d SMS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [690, 750]
+    }
+  ],
+  "connections": {
+    "Webhook - Lead Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Clearbit Company Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clearbit Company Lookup": {
+      "main": [
+        [
+          {
+            "node": "Respond with Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Backup to Sheets": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Append Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook - Follow-up Sequence": {
+      "main": [
+        [
+          {
+            "node": "Check Sequence Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Sequence Type": {
+      "main": [
+        [
+          {
+            "node": "GHL - Send 48h Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GHL - Send 7d SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-01T00:00:00.000Z",
+  "versionId": "1"
+}

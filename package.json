@@ -1,0 +1,60 @@
+{
+  "name": "shuai-agency-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest",
+    "test:integration": "vitest run tests/integration",
+    "test:unit": "vitest run tests/unit",
+    "db:migrate": "node --loader ts-node/esm scripts/migrate.ts",
+    "db:seed": "node --loader ts-node/esm scripts/seed-db.ts",
+    "index:embeddings": "node --loader ts-node/esm scripts/index-site.ts",
+    "audit": "npm audit --audit-level=high"
+  },
+  "dependencies": {
+    "next": "14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@headlessui/react": "^2.1.10",
+    "@heroicons/react": "^2.1.5",
+    "react-aria": "^3.35.0",
+    "react-aria-components": "^1.4.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/typography": "^0.5.15",
+    "postgres": "^3.4.4",
+    "pg": "^8.13.1",
+    "pgvector": "^0.2.0",
+    "redis": "^4.7.0",
+    "openai": "^4.73.0",
+    "@pinecone-database/pinecone": "^3.0.3",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.9.6",
+    "zod": "^3.23.8",
+    "nanoid": "^5.0.8",
+    "axios": "^1.7.8",
+    "sharp": "^0.33.5",
+    "@sentry/nextjs": "^8.38.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/node": "^22.9.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/pg": "^8.11.10",
+    "@types/bcryptjs": "^2.4.6",
+    "vitest": "^2.1.4",
+    "@vitest/ui": "^2.1.4",
+    "ts-node": "^10.9.2",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.15",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
