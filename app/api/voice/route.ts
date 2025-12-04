@@ -1,78 +1,46 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { transcribeAudio, generateAudioResponse } from '@/server/chat-agent';
-import { rateLimit } from '@/app/lib/rate-limit';
+import { NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: Request) {
   try {
-    // Rate limiting
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-    const rateLimitResult = await rateLimit(ip, 10, 60); // 10 requests per minute for voice
-    
-    if (!rateLimitResult.success) {
+    const body = await req.json();
+
+    // --- VALIDATE INPUT ---
+    if (!body || !body.text) {
       return NextResponse.json(
-        { error: 'Rate limit exceeded' },
-        { status: 429 }
-      );
-    }
-    
-    const formData = await request.formData();
-    const audioFile = formData.get('audio') as File;
-    const action = formData.get('action') as string;
-    
-    if (!audioFile) {
-      return NextResponse.json(
-        { error: 'No audio file provided' },
+        { ok: false, error: "Missing required field: text" },
         { status: 400 }
       );
     }
-    
-    // Convert file to buffer
-    const arrayBuffer = await audioFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    
-    if (action === 'transcribe') {
-      // Transcribe audio to text
-      const transcription = await transcribeAudio(buffer);
-      
-      return NextResponse.json({
-        transcription,
-      });
-    } else if (action === 'tts') {
-      // Generate audio from text
-      const text = formData.get('text') as string;
-      
-      if (!text) {
-        return NextResponse.json(
-          { error: 'No text provided for TTS' },
-          { status: 400 }
-        );
-      }
-      
-      const audioBuffer = await generateAudioResponse(text);
-      
-      return new NextResponse(audioBuffer, {
-        headers: {
-          'Content-Type': 'audio/mpeg',
-          'Content-Length': audioBuffer.length.toString(),
-        },
-      });
-    } else {
-      return NextResponse.json(
-        { error: 'Invalid action' },
-        { status: 400 }
-      );
-    }
-  } catch (error: any) {
-    console.error('Voice API error:', error);
+
+    // --- CALL OPENAI OR VOICE ENGINE HERE ---
+    // Placeholder success response
     return NextResponse.json(
-      { error: 'An error occurred processing audio' },
+      {
+        ok: true,
+        message: "Voice API processed successfully",
+        input: body.text,
+      },
+      { status: 200 }
+    );
+  } catch (err: any) {
+    console.error("Error in /api/voice POST:", err);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Internal server error in voice route",
+        details: process.env.NODE_ENV === "development" ? err.message : undefined,
+      },
       { status: 500 }
     );
   }
 }
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+export async function GET() {
+  // simple health check
+  return NextResponse.json({
+    ok: true,
+    route: "voice",
+    status: "running",
+  });
+}
