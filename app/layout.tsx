@@ -1,51 +1,47 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { generateMetadata as genMeta, generateOrganizationSchema } from '@/server/seo';
-import Script from 'next/script';
-import CookieConsent from './components/CookieConsent';
+// app/layout.tsx
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "@/app/globals.css"; // Correct absolute path – works on Vercel
+import Script from "next/script";
+import CookieConsent from "@/components/CookieConsent";
+import { generateMetadata as genMeta, generateOrganizationSchema } from "@/lib/seo";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
 
+// ---------- SITE METADATA (SEO READY) ----------
 export const metadata: Metadata = genMeta({
-  title: '',
-  description: '',
+  title: "ShuAI Growth Engine",
+  description:
+    "Next-generation AI-powered growth website for agencies. Built with Next.js 14 + OpenAI.",
 }) as any;
 
+// ---------- ROOT LAYOUT ----------
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const orgSchema = generateOrganizationSchema();
-  
+
   return (
     <html lang="en" className={inter.variable}>
       <head>
+        {/* JSON-LD — Organization Schema */}
         <Script
           id="org-schema"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
         />
-        {process.env.NEXT_PUBLIC_ANALYTICS_ID && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_ANALYTICS_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="google-analytics" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${process.env.NEXT_PUBLIC_ANALYTICS_ID}');
-              `}
-            </Script>
-          </>
-        )}
       </head>
-      <body className="antialiased">
+
+      <body>
+        {/* Page Content */}
         {children}
+
+        {/* Cookie Consent Banner */}
         <CookieConsent />
       </body>
     </html>
